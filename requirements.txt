@@ -4,3 +4,6 @@ itsdangerous==1.1.0
 Jinja2==2.11.2
 MarkupSafe==1.1.1
 Werkzeug==1.0.1
+pytest==7.1.2
+pytest-mock==3.7.0
+pytest-flask==1.2.0
