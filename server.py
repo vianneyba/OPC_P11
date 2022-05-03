@@ -1,6 +1,7 @@
 import json
 from flask import Flask, render_template, request, redirect, flash, url_for
 from app.club import Club
+from app.competition import Competition
 
 
 def loadClubs():
@@ -14,9 +15,30 @@ def loadClubs():
 
 
 def loadCompetitions():
+    competitions = []
     with open('competitions.json') as comps:
         listOfCompetitions = json.load(comps)['competitions']
-        return listOfCompetitions
+        for c in listOfCompetitions:
+            competition = Competition(
+                ['name'], c['date'], c['numberOfPlaces'])
+            competitions.append(competition)
+        return competitions
+
+
+def searchClub(listClubs, clubName):
+    for club in listClubs:
+        if club.name == clubName:
+            return club
+
+    raise ValueError("club does not exist")
+
+
+def searchCompetition(listCompetition, competitionName):
+    for competition in listCompetition:
+        if competition.name == competitionName:
+            return competition
+
+    raise ValueError("competition does not exist")
 
 
 app = Flask(__name__)
@@ -45,21 +67,16 @@ def showSummary():
 
 @app.route('/book/<competition>/<club>')
 def book(competition, club):
-    for c in clubs:
-        if c['name'] == club:
-            foundClub = c
-
-    for c in competitions:
-        if c['name'] == competition:
-            foundCompetition = c
-
-    if foundClub and foundCompetition:
+    foundClub = None
+    try:
+        foundClub = searchClub(clubs, club)
+        foundCompetition = searchCompetition(competitions, competition)
         return render_template(
             'booking.html', club=foundClub, competition=foundCompetition)
-    else:
+    except ValueError:
         flash("Something went wrong-please try again")
         return render_template(
-            'welcome.html', club=club, competitions=competitions)
+            'welcome.html', club=foundClub, competitions=competitions)
 
 
 @app.route('/purchasePlaces', methods=['POST'])
