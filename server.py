@@ -20,7 +20,7 @@ def loadCompetitions():
         listOfCompetitions = json.load(comps)['competitions']
         for c in listOfCompetitions:
             competition = Competition(
-                ['name'], c['date'], c['numberOfPlaces'])
+                c['name'], c['date'], c['numberOfPlaces'])
             competitions.append(competition)
         return competitions
 
@@ -81,19 +81,20 @@ def book(competition, club):
 
 @app.route('/purchasePlaces', methods=['POST'])
 def purchasePlaces():
-    for c in competitions:
-        if c['name'] == request.form['competition']:
-            competition = c
 
     placesRequired = int(request.form['places'])
-    competition['numberOfPlaces'] = int(
-        competition['numberOfPlaces'])-placesRequired
+    competition = searchCompetition(competitions, request.form['competition'])
+    club = searchClub(clubs, request.form['club'])
 
-    for c in clubs:
-        if c['name'] == request.form['club']:
-            club = c
+    have_place = competition.enough_place(placesRequired)
+    have_point = club.enough_point(placesRequired)
 
-    flash('Great-booking complete!')
+    if have_place and have_point:
+        competition.set_number_of_places(placesRequired)
+        club.purchase_place(placesRequired)
+    else:
+        flash('Great-booking complete!')
+
     return render_template(
         'welcome.html', club=club, competitions=competitions)
 
