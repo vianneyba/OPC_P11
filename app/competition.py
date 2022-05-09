@@ -1,3 +1,5 @@
+from datetime import datetime
+
 class Competition:
 
     def __init__(self, name, date, numberOfPlaces):
@@ -13,3 +15,9 @@ class Competition:
             self.numberOfPlaces -= placesRequired
         else:
             raise ValueError("there is not enough place available")
+
+    def get_date(self):
+        return datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S")
+
+    def is_displayable(self):
+        return datetime.now() <= self.get_date() and self.numberOfPlaces > 0

@@ -23,13 +23,14 @@
             {{ competition.name }}<br />
             Date: {{ competition.date }}</br>
             Number of Places: {{ competition.numberOfPlaces }}
-            {% if competition.numberOfPlaces | int >0 %}
+            {% if competition.is_displayable() %}
                 {% if club %}
                     <a href="{{ url_for('book',competition=competition.name, club=club.name) }}">Book Places</a>
                 {% else %}
-                <a href="{{ url_for('index') }}">booking not possible</a>
-            {% endif %}
-
+                    <a href="{{ url_for('index') }}">booking not possible</a>
+                {% endif %}
+            {% else %}
+                booking not possible
             {% endif %}
         </li>
         <hr />

@@ -1,16 +1,19 @@
 from app.club import Club
 from app.competition import Competition
 import server
-
+from datetime import datetime, timedelta 
 
 clubs = [
     Club('virginie dupont', 'virginie@free.fr', '8'),
     Club('vianney bailleux', 'vianney@free.fr', '14')
 ]
 
+time_test_one = datetime.now() - timedelta(minutes=50)
+time_test_two = datetime.now() + timedelta(minutes=50)
 competitions = [
-    Competition('test_one', '2020-10-22 13:30:00', '7'),
-    Competition('test_two', '2020-10-22 13:30:00', '20')
+    Competition('test_one', time_test_one.strftime("%Y-%m-%d %H:%M:%S"), '7'),
+    Competition('test_two', time_test_two.strftime("%Y-%m-%d %H:%M:%S"), '20'),
+    Competition('test_three', time_test_two.strftime("%Y-%m-%d %H:%M:%S"), '7'),
 ]
 
 
@@ -29,7 +32,7 @@ def test_purchasePlaces(client, mocker):
 
     response = client.post(
         "/purchasePlaces",
-        data={"competition": "test_one", "club": "vianney bailleux", "places": "8"})
+        data={"competition": "test_three", "club": "vianney bailleux", "places": "8"})
     data = response.data.decode()
     expected_data = "There is not enough place on this competition"
     assert response.status_code == 403
@@ -66,4 +69,24 @@ def test_purchasePlaces(client, mocker):
     data = response.data.decode()
     expected_data = "you have reserved more than 12 places"
     assert response.status_code == 403
+    assert expected_data in data
+
+def test_purchasePlaces_date(client, mocker):
+    mocker.patch.object(server, "clubs", clubs)
+    mocker.patch.object(server, "competitions", competitions)
+
+    response = client.post(
+        "/purchasePlaces",
+        data={"competition": "test_one", "club": "vianney bailleux", "places": "1"})
+    data = response.data.decode()
+    expected_data = "you cannot book a place in a past competition!"
+    assert response.status_code == 403
+    assert expected_data in data
+
+    response = client.post(
+        "/purchasePlaces",
+        data={"competition": "test_two", "club": "vianney bailleux", "places": "1"})
+    data = response.data.decode()
+    expected_data = "Great-booking complete!"
+    assert response.status_code == 200
     assert expected_data in data

@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, flash, url_for
 from app.club import Club
 from app.competition import Competition
 from app.booking import Booking
+from datetime import datetime, date
 
 MAX_PLACES = 12
 
@@ -73,8 +74,12 @@ def book(competition, club):
     try:
         foundClub = searchClub(clubs, club)
         foundCompetition = searchCompetition(competitions, competition)
-        return render_template(
-            'booking.html', club=foundClub, competition=foundCompetition)
+        if datetime.now() <= foundCompetition.get_date():
+            return render_template(
+                'booking.html', club=foundClub, competition=foundCompetition)
+        else:
+            return render_template(
+                'welcome.html', club=foundClub, competitions=competitions)
     except ValueError:
         flash("Something went wrong-please try again")
         return render_template(
@@ -93,7 +98,11 @@ def purchasePlaces():
     have_point = club.enough_point(placesRequired)
     have_booked = Booking.already_booked(club.name, competition.name)
 
-    if have_place is False:
+
+    if competition.get_date() <= datetime.now():
+        code = 403
+        flash('you cannot book a place in a past competition!')
+    elif have_place is False:
         code = 403
         flash('There is not enough place on this competition')
     elif have_point is False:
