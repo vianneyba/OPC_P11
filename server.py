@@ -40,7 +40,7 @@ def showSummary():
                 'welcome.html', club=club, competitions=competitions)
 
     return render_template(
-        "index.html", error="unknown email"), 404
+        "index.html", error="Sorry, that email wasn't found."), 404
 
 
 @app.route('/book/<competition>/<club>')
