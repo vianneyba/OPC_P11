@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List</title>
+</head>
+<body>
+    <a href="{{ url_for('index') }}">Go Back</a>
+    <table>
+        <thead>
+        <tr>
+            <th>club name</th>
+            <th>points</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for club in clubs %}
+        <tr>
+            <td>{{ club.name }}</td>
+            <td>{{ club.points }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+</body>
+</html>

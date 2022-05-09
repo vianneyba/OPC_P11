@@ -90,3 +90,24 @@ def test_purchasePlaces_date(client, mocker):
     expected_data = "Great-booking complete!"
     assert response.status_code == 200
     assert expected_data in data
+
+def test_displayBoard(client, mocker):
+    clubs = [
+        Club('club 1', 'club1@free.fr', '9'),
+        Club('club 2', 'club2@free.fr', '6')
+    ]
+    mocker.patch.object(server, "clubs", clubs)
+    response = client.get("/displayBoard")
+    data = response.data.decode()
+
+    assert response.status_code == 200
+
+    club_1_name = "<td>club 1</td>"
+    club_1_pts = "<td>9</td>"
+    club_2_name = "<td>club 2</td>"
+    club_2_pts = "<td>6</td>"
+    assert club_1_name in data
+    assert club_1_pts in data
+    assert club_2_name in data
+    assert club_2_pts in data
+
