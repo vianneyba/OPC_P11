@@ -2,7 +2,9 @@ import json
 from flask import Flask, render_template, request, redirect, flash, url_for
 from app.club import Club
 from app.competition import Competition
+from app.booking import Booking
 
+MAX_PLACES = 12
 
 def loadClubs():
     clubs = []
@@ -86,17 +88,32 @@ def purchasePlaces():
     competition = searchCompetition(competitions, request.form['competition'])
     club = searchClub(clubs, request.form['club'])
 
+    code = 200
     have_place = competition.enough_place(placesRequired)
     have_point = club.enough_point(placesRequired)
+    have_booked = Booking.already_booked(club.name, competition.name)
 
-    if have_place and have_point:
+    if have_place is False:
+        code = 403
+        flash('There is not enough place on this competition')
+    elif have_point is False:
+        code = 403
+        flash('there is not enough place for this club')
+    elif placesRequired > MAX_PLACES or (have_booked is not None and have_booked.nb_places + placesRequired > MAX_PLACES):
+        code = 403
+        flash(f'you have reserved more than {MAX_PLACES} places')
+    else:
+        if have_booked is None:
+            Booking(club.name, competition.name, placesRequired)
+        else:
+            have_booked.add_places(placesRequired)
+
         competition.set_number_of_places(placesRequired)
         club.purchase_place(placesRequired)
-    else:
-        flash('Great-booking complete!')
+        flash("Great-booking complete!")
 
     return render_template(
-        'welcome.html', club=club, competitions=competitions)
+        'welcome.html', club=club, competitions=competitions), code
 
 
 # TODO: Add route for points display
