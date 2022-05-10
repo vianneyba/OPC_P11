@@ -2,31 +2,11 @@ import json
 from flask import Flask, render_template, request, redirect, flash, url_for
 from app.club import Club
 from app.competition import Competition
+from app.load_json import loadClubs, loadCompetitions
 from app.booking import Booking
 from datetime import datetime, date
 
 MAX_PLACES = 12
-
-def loadClubs():
-    clubs = []
-    with open('clubs.json') as c:
-        listOfClubs = json.load(c)['clubs']
-        for c in listOfClubs:
-            club = Club(c['name'], c['email'], c['points'])
-            clubs.append(club)
-        return clubs
-
-
-def loadCompetitions():
-    competitions = []
-    with open('competitions.json') as comps:
-        listOfCompetitions = json.load(comps)['competitions']
-        for c in listOfCompetitions:
-            competition = Competition(
-                c['name'], c['date'], c['numberOfPlaces'])
-            competitions.append(competition)
-        return competitions
-
 
 def searchClub(listClubs, clubName):
     for club in listClubs:
@@ -47,9 +27,8 @@ def searchCompetition(listCompetition, competitionName):
 app = Flask(__name__)
 app.secret_key = 'something_special'
 
-competitions = loadCompetitions()
-clubs = loadClubs()
-
+competitions = loadCompetitions('competitions.json')
+clubs = loadClubs('clubs.json')
 
 @app.route('/')
 def index():
