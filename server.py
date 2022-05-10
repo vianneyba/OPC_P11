@@ -7,13 +7,23 @@ from app.booking import Booking
 from datetime import datetime, date
 
 MAX_PLACES = 12
+ERROR = {
+    'COMPETITION_NOT_EXIST': 'competition does not exist',
+    'CLUB_NOT_EXIST': 'club does not exist',
+    'EMAIL_NOT_EXIST': 'Sorry, that email wasn\'t found.',
+    'TRY_AGAIN': 'Something went wrong-please try again',
+    'BOOK_IN_PAST_COMPETITION': 'you cannot book a place in a past competition!',
+    'ENOUGH_PLACE_COMPETITION': 'There is not enough place on this competition',
+    'ENOUGH_PLACE_CLUB': 'there is not enough place for this club',
+    'RESERVED_MORE_MAX_PLACES': f'you have reserved more than {MAX_PLACES} places',
+    'BOOKING_OK': 'Great-booking complete!'}
 
 def searchClub(listClubs, clubName):
     for club in listClubs:
         if club.name == clubName:
             return club
 
-    raise ValueError("club does not exist")
+    raise ValueError(ERROR['CLUB_NOT_EXIST'])
 
 
 def searchCompetition(listCompetition, competitionName):
@@ -21,7 +31,7 @@ def searchCompetition(listCompetition, competitionName):
         if competition.name == competitionName:
             return competition
 
-    raise ValueError("competition does not exist")
+    raise ValueError(ERROR['COMPETITION_NOT_EXIST'])
 
 
 app = Flask(__name__)
@@ -44,7 +54,7 @@ def showSummary():
                 'welcome.html', club=club, competitions=competitions)
 
     return render_template(
-        "index.html", error="Sorry, that email wasn't found."), 404
+        "index.html", error=ERROR['EMAIL_NOT_EXIST']), 404
 
 
 @app.route('/book/<competition>/<club>')
@@ -60,7 +70,7 @@ def book(competition, club):
             return render_template(
                 'welcome.html', club=foundClub, competitions=competitions)
     except ValueError:
-        flash("Something went wrong-please try again")
+        flash(ERROR['TRY_AGAIN'])
         return render_template(
             'welcome.html', club=foundClub, competitions=competitions)
 
@@ -80,16 +90,16 @@ def purchasePlaces():
 
     if competition.get_date() <= datetime.now():
         code = 403
-        flash('you cannot book a place in a past competition!')
+        flash(ERROR ['BOOK_IN_PAST_COMPETITION'])
     elif have_place is False:
         code = 403
-        flash('There is not enough place on this competition')
+        flash(ERROR ['ENOUGH_PLACE_COMPETITION'])
     elif have_point is False:
         code = 403
-        flash('there is not enough place for this club')
+        flash(ERROR ['ENOUGH_PLACE_CLUB'])
     elif placesRequired > MAX_PLACES or (have_booked is not None and have_booked.nb_places + placesRequired > MAX_PLACES):
         code = 403
-        flash(f'you have reserved more than {MAX_PLACES} places')
+        flash(ERROR ['RESERVED_MORE_MAX_PLACES'])
     else:
         if have_booked is None:
             Booking(club.name, competition.name, placesRequired)
@@ -98,7 +108,7 @@ def purchasePlaces():
 
         competition.set_number_of_places(placesRequired)
         club.purchase_place(placesRequired)
-        flash("Great-booking complete!")
+        flash(ERROR ['BOOKING_OK'])
 
     return render_template(
         'welcome.html', club=club, competitions=competitions), code
