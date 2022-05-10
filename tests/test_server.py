@@ -5,7 +5,8 @@ from datetime import datetime, timedelta
 
 clubs = [
     Club('virginie dupont', 'virginie@free.fr', '8'),
-    Club('vianney bailleux', 'vianney@free.fr', '14')
+    Club('vianney bailleux', 'vianney@free.fr', '14'),
+    Club('raymond bailleux', 'raymond@free.fr', '14')
 ]
 
 time_test_one = datetime.now() - timedelta(minutes=50)
@@ -16,86 +17,83 @@ competitions = [
     Competition('test_three', time_test_two.strftime("%Y-%m-%d %H:%M:%S"), '7'),
 ]
 
+def func_test_in_response(client, data, error_message, status_code):
+    response = client.post(
+        "/purchasePlaces",
+        data=data)
+    data = response.data.decode()
+    expected_data = error_message
+    assert response.status_code == status_code
+    assert expected_data in data
 
-def test_showSummary_email(client, mocker):
+def test_showSummary_email_valid(client, mocker):
     mocker.patch.object(server, "clubs", clubs)
-    response_ok = client.post(
+    response = client.post(
         "/showSummary", data={"email": "vianney@free.fr"})
-    response_ko = client.post(
+    assert response.status_code == 200
+
+def test_showSummary_email_invalid(client, mocker):
+    mocker.patch.object(server, "clubs", clubs)
+    response = client.post(
         "/showSummary", data={"email": "aymeric@free.fr"})
-    assert response_ok.status_code == 200
-    assert response_ko.status_code == 404
+    assert response.status_code == 404
+
+def test_purchasePlaces_enough_place_competition(client, mocker):
+    mocker.patch.object(server, "clubs", clubs)
+    mocker.patch.object(server, "competitions", competitions)
+
+    data={"competition": "test_three", "club": "vianney bailleux", "places": "8"}
+    func_test_in_response(client, data, server.ERROR['ENOUGH_PLACE_COMPETITION'], 403)
+
+def test_purchasePlaces_enough_place_club(client, mocker):
+    mocker.patch.object(server, "clubs", clubs)
+    mocker.patch.object(server, "competitions", competitions)
+
+    data={"competition": "test_two", "club": "virginie dupont", "places": "9"}
+    func_test_in_response(client, data, server.ERROR['ENOUGH_PLACE_CLUB'], 403)
+
+def test_purchasePlaces_reserved_max_place(client, mocker):
+    mocker.patch.object(server, "clubs", clubs)
+    mocker.patch.object(server, "competitions", competitions)
+
+    data={"competition": "test_two", "club": "vianney bailleux", "places": "14"}
+    func_test_in_response(client, data, server.ERROR['RESERVED_MORE_MAX_PLACES'], 403)
 
 def test_purchasePlaces(client, mocker):
     mocker.patch.object(server, "clubs", clubs)
     mocker.patch.object(server, "competitions", competitions)
 
-    response = client.post(
-        "/purchasePlaces",
-        data={"competition": "test_three", "club": "vianney bailleux", "places": "8"})
-    data = response.data.decode()
-    expected_data = "There is not enough place on this competition"
-    assert response.status_code == 403
-    assert expected_data in data
+    data={"competition": "test_two", "club": "vianney bailleux", "places": "3"}
+    func_test_in_response(client, data, server.ERROR['BOOKING_OK'], 200)
 
-    response = client.post(
-        "/purchasePlaces",
-        data={"competition": "test_two", "club": "virginie dupont", "places": "9"})
-
-    data = response.data.decode()
-    expected_data = "there is not enough place for this club"
-    assert response.status_code == 403
-    assert expected_data in data
-
-    response = client.post(
-        "/purchasePlaces",
-        data={"competition": "test_two", "club": "vianney bailleux", "places": "14"})
-    data = response.data.decode()
-    expected_data = "you have reserved more than 12 places"
-    assert response.status_code == 403
-    assert expected_data in data
-
-    response = client.post(
-        "/purchasePlaces",
-        data={"competition": "test_two", "club": "vianney bailleux", "places": "10"})
-    data = response.data.decode()
-    expected_data = "Great-booking complete!"
-    assert response.status_code == 200
-    assert expected_data in data
-
-    response = client.post(
-        "/purchasePlaces",
-        data={"competition": "test_two", "club": "vianney bailleux", "places": "3"})
-    data = response.data.decode()
-    expected_data = "you have reserved more than 12 places"
-    assert response.status_code == 403
-    assert expected_data in data
-
-def test_purchasePlaces_date(client, mocker):
+def test_purchasePlaces_reserved_max_place_two(client, mocker):
     mocker.patch.object(server, "clubs", clubs)
     mocker.patch.object(server, "competitions", competitions)
 
-    response = client.post(
-        "/purchasePlaces",
-        data={"competition": "test_one", "club": "vianney bailleux", "places": "1"})
-    data = response.data.decode()
-    expected_data = "you cannot book a place in a past competition!"
-    assert response.status_code == 403
-    assert expected_data in data
+    data={"competition": "test_two", "club": "raymond bailleux", "places": "10"}
+    func_test_in_response(client, data, server.ERROR['BOOKING_OK'], 200)
+    data={"competition": "test_two", "club": "raymond bailleux", "places": "3"}
+    func_test_in_response(client, data, server.ERROR['RESERVED_MORE_MAX_PLACES'], 403)
 
-    response = client.post(
-        "/purchasePlaces",
-        data={"competition": "test_two", "club": "vianney bailleux", "places": "1"})
-    data = response.data.decode()
-    expected_data = "Great-booking complete!"
-    assert response.status_code == 200
-    assert expected_data in data
+def test_purchasePlaces_competition_date_in_past(client, mocker):
+    mocker.patch.object(server, "clubs", clubs)
+    mocker.patch.object(server, "competitions", competitions)
+
+    data={"competition": "test_one", "club": "vianney bailleux", "places": "1"}
+    func_test_in_response(client, data, server.ERROR['BOOK_IN_PAST_COMPETITION'], 403)
+
+def test_purchasePlaces_competition_date_in_future(client, mocker):
+    mocker.patch.object(server, "clubs", clubs)
+    mocker.patch.object(server, "competitions", competitions)
+
+    data={"competition": "test_two", "club": "vianney bailleux", "places": "1"}
+    func_test_in_response(client, data, server.ERROR['BOOKING_OK'], 200)
 
 def test_displayBoard(client, mocker):
     clubs = [
         Club('club 1', 'club1@free.fr', '9'),
-        Club('club 2', 'club2@free.fr', '6')
-    ]
+        Club('club 2', 'club2@free.fr', '6')]
+
     mocker.patch.object(server, "clubs", clubs)
     response = client.get("/displayBoard")
     data = response.data.decode()
@@ -110,4 +108,3 @@ def test_displayBoard(client, mocker):
     assert club_1_pts in data
     assert club_2_name in data
     assert club_2_pts in data
-
