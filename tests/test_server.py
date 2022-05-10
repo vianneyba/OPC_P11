@@ -108,3 +108,39 @@ def test_displayBoard(client, mocker):
     assert club_1_pts in data
     assert club_2_name in data
     assert club_2_pts in data
+
+def test_index(client):
+    response = client.get("/")
+    assert response.status_code == 200
+
+def test_book_competition_not_exist(client, mocker):
+    mocker.patch.object(server, "clubs", clubs)
+    mocker.patch.object(server, "competitions", competitions)
+
+    response = client.get("/book/club%201/virginie%20dupont")
+    assert response.status_code == 404
+
+def test_book_club_not_exist(client, mocker):
+    mocker.patch.object(server, "clubs", clubs)
+    mocker.patch.object(server, "competitions", competitions)
+
+    response = client.get("/book/test_three/marie%20dupont")
+    assert response.status_code == 404
+
+def test_book_competition_date_in_past(client, mocker):
+    mocker.patch.object(server, "clubs", clubs)
+    mocker.patch.object(server, "competitions", competitions)
+
+    response = client.get("/book/test_one/virginie%20dupont")
+    assert response.status_code == 403
+
+def test_book_ok(client, mocker):
+    mocker.patch.object(server, "clubs", clubs)
+    mocker.patch.object(server, "competitions", competitions)
+
+    response = client.get("/book/test_three/virginie%20dupont")
+    assert response.status_code == 200
+
+def test_logout(client):
+    response = client.get('/logout')
+    assert response.status_code == 302
