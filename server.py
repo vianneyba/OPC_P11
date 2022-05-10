@@ -68,11 +68,11 @@ def book(competition, club):
                 'booking.html', club=foundClub, competition=foundCompetition)
         else:
             return render_template(
-                'welcome.html', club=foundClub, competitions=competitions)
+                'welcome.html', club=foundClub, competitions=competitions), 403
     except ValueError:
         flash(ERROR['TRY_AGAIN'])
         return render_template(
-            'welcome.html', club=foundClub, competitions=competitions)
+            'welcome.html', club=foundClub, competitions=competitions), 404
 
 
 @app.route('/purchasePlaces', methods=['POST'])
