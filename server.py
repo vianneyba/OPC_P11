@@ -8,6 +8,7 @@ app.config['TESTING'] = True
 app.secret_key = 'something_special'
 
 MAX_PLACES = 12
+COEF = 2
 
 ERROR = {
     'COMPETITION_NOT_EXIST': 'competition does not exist',
@@ -91,21 +92,21 @@ def purchasePlaces():
 
     code = 200
     have_place = competition.enough_place(placesRequired)
-    have_point = club.enough_point(placesRequired)
+    have_point = club.enough_point(placesRequired, COEF)
     have_booked = Booking.already_booked(club.name, competition.name)
 
     if competition.get_date() <= datetime.now():
         code = 403
         flash(ERROR['BOOK_IN_PAST_COMPETITION'])
+    elif placesRequired > MAX_PLACES or (have_booked is not None and have_booked.nb_places + placesRequired > MAX_PLACES):
+        code = 403
+        flash(ERROR['RESERVED_MORE_MAX_PLACES'])
     elif have_place is False:
         code = 403
         flash(ERROR['ENOUGH_PLACE_COMPETITION'])
     elif have_point is False:
         code = 403
         flash(ERROR['ENOUGH_PLACE_CLUB'])
-    elif placesRequired > MAX_PLACES or (have_booked is not None and have_booked.nb_places + placesRequired > MAX_PLACES):
-        code = 403
-        flash(ERROR['RESERVED_MORE_MAX_PLACES'])
     else:
         if have_booked is None:
             Booking(club.name, competition.name, placesRequired)
@@ -113,7 +114,7 @@ def purchasePlaces():
             have_booked.add_places(placesRequired)
 
         competition.set_number_of_places(placesRequired)
-        club.purchase_place(placesRequired)
+        club.purchase_place(placesRequired, COEF)
         flash(ERROR['BOOKING_OK'])
 
     return render_template(

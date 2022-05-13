@@ -18,7 +18,9 @@ def test_login_logout(client, mocker):
 
 
 def test_login_purchase(client, mocker):
-    clubs = [Club('vianney bailleux', 'vianney@free.fr', '10')]
+    nbr_places = 1
+    club_pts = 10
+    clubs = [Club('vianney bailleux', 'vianney@free.fr', club_pts)]
     time = datetime.now() + timedelta(minutes=50)
     competitions = [
         Competition('summer', time.strftime("%Y-%m-%d %H:%M:%S"), '7')
@@ -32,11 +34,11 @@ def test_login_purchase(client, mocker):
         "/showSummary", data={"email": "vianney@free.fr"})
     response = client.post(
         "/purchasePlaces",
-        data={'places': 1, 'club': 'vianney bailleux', 'competition': 'summer'}
+        data={'places': nbr_places, 'club': 'vianney bailleux', 'competition': 'summer'}
         )
 
     assert res_login_page.status_code == 200
     assert res_login.status_code == 200
     assert response.status_code == 200
-    assert server.clubs[0].points == 9
+    assert server.clubs[0].points == club_pts - nbr_places * server.COEF
     assert server.competitions[0].numberOfPlaces == 6

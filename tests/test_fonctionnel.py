@@ -1,8 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
+COEF = 2
 url_serveur = 'http://localhost:8083'
-coef_pts = 1
 
 
 def init_selenium():
@@ -61,7 +61,7 @@ def test_book_place(client, mocker):
     assert int(get_pts_by_id(driver)) == pts_competiton
 
     book_place(driver, nb_places)
-    assert int(get_pts_by_id(driver)) == pts_club - nb_places * coef_pts
+    assert int(get_pts_by_id(driver)) == pts_club - nb_places * COEF
     assert int(get_pts_for_competiton(driver)) == pts_competiton - nb_places
 
     driver.close()
