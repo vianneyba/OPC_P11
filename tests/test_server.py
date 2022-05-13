@@ -54,7 +54,7 @@ def test_purchasePlaces_enough_place_competition(client, mocker):
         client, data, server.ERROR['ENOUGH_PLACE_COMPETITION'], 403)
 
 
-def test_purchasePlaces_enough_place_club(client, mocker):
+def test_purchasePlaces_enough_points_club(client, mocker):
     mocker.patch.object(server, "clubs", clubs)
     mocker.patch.object(server, "competitions", competitions)
 
