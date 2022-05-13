@@ -1,12 +1,14 @@
-import json
 from flask import Flask, render_template, request, redirect, flash, url_for
-from app.club import Club
-from app.competition import Competition
 from app.load_json import loadClubs, loadCompetitions
 from app.booking import Booking
-from datetime import datetime, date
+from datetime import datetime
+
+app = Flask(__name__)
+app.config['TESTING'] = True
+app.secret_key = 'something_special'
 
 MAX_PLACES = 12
+
 ERROR = {
     'COMPETITION_NOT_EXIST': 'competition does not exist',
     'CLUB_NOT_EXIST': 'club does not exist',
@@ -17,6 +19,17 @@ ERROR = {
     'ENOUGH_PLACE_CLUB': 'there is not enough place for this club',
     'RESERVED_MORE_MAX_PLACES': f'you have reserved more than {MAX_PLACES} places',
     'BOOKING_OK': 'Great-booking complete!'}
+
+if app.config["TESTING"]:
+    competition_json = 'json/competitions_test.json'
+    clubs_json = 'json/clubs_test.json'
+else:
+    competition_json = 'json/competitions.json'
+    clubs_json = 'json/clubs.json'
+
+competitions = loadCompetitions(competition_json)
+clubs = loadClubs(clubs_json)
+
 
 def searchClub(listClubs, clubName):
     for club in listClubs:
@@ -33,12 +46,6 @@ def searchCompetition(listCompetition, competitionName):
 
     raise ValueError(ERROR['COMPETITION_NOT_EXIST'])
 
-
-app = Flask(__name__)
-app.secret_key = 'something_special'
-
-competitions = loadCompetitions('competitions.json')
-clubs = loadClubs('clubs.json')
 
 @app.route('/')
 def index():
@@ -87,19 +94,18 @@ def purchasePlaces():
     have_point = club.enough_point(placesRequired)
     have_booked = Booking.already_booked(club.name, competition.name)
 
-
     if competition.get_date() <= datetime.now():
         code = 403
-        flash(ERROR ['BOOK_IN_PAST_COMPETITION'])
+        flash(ERROR['BOOK_IN_PAST_COMPETITION'])
     elif have_place is False:
         code = 403
-        flash(ERROR ['ENOUGH_PLACE_COMPETITION'])
+        flash(ERROR['ENOUGH_PLACE_COMPETITION'])
     elif have_point is False:
         code = 403
-        flash(ERROR ['ENOUGH_PLACE_CLUB'])
+        flash(ERROR['ENOUGH_PLACE_CLUB'])
     elif placesRequired > MAX_PLACES or (have_booked is not None and have_booked.nb_places + placesRequired > MAX_PLACES):
         code = 403
-        flash(ERROR ['RESERVED_MORE_MAX_PLACES'])
+        flash(ERROR['RESERVED_MORE_MAX_PLACES'])
     else:
         if have_booked is None:
             Booking(club.name, competition.name, placesRequired)
@@ -108,7 +114,7 @@ def purchasePlaces():
 
         competition.set_number_of_places(placesRequired)
         club.purchase_place(placesRequired)
-        flash(ERROR ['BOOKING_OK'])
+        flash(ERROR['BOOKING_OK'])
 
     return render_template(
         'welcome.html', club=club, competitions=competitions), code

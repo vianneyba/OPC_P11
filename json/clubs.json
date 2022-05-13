@@ -13,8 +13,12 @@
         "email": "kate@shelifts.co.uk",
         "points":"12"
     },
-    {   "name":"Vianney Bailleux",
+    {   "name":"vianney bailleux",
         "email": "vianney@free.fr",
         "points":"12"
+    },
+    {   "name":"Raymond Bailleux",
+        "email": "raymon@free.fr",
+        "points":"20"
     }
 ]}
