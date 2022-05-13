@@ -35,6 +35,7 @@
 
     - You should now be ready to test the application. In the directory, type either <code>flask run</code> or <code>python -m flask run</code>. The app should respond with an address you should be able to go to using your browser.
 
+
 4. Current Setup
 
     The app is powered by [JSON files](https://www.tutorialspoint.com/json/json_quick_guide.htm). This is to get around having a DB until we actually need one. The main ones are:
@@ -43,6 +44,8 @@
     * clubs.json - list of clubs with relevant information. You can look here to see what email addresses the app will accept for login.
 
 5. Testing
+
+    for functional test download the driver Geckodriver [here](https://github.com/mozilla/geckodriver/releases) and copy in <code>tests/</code> file
 
     You are free to use whatever testing framework you like-the main thing is that you can show what tests you are using.
 
