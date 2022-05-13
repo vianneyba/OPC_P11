@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from server import COEF
 
 url_serveur = 'http://localhost:8083'
 coef_pts = 1
