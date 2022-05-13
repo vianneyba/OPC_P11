@@ -17,7 +17,7 @@ class ProjectPerfTest(HttpUser):
 
     @task
     def test_book(self):
-        self.client.get('/book/Test%20Competition%20One/Vianney%20Bailleux')
+        self.client.get('/book/Test%20Competition%20One/vianney%20bailleux')
 
     @task
     def test_purchase_places(self):
