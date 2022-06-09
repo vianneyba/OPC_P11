@@ -144,3 +144,11 @@ def test_book_ok(client, mocker):
 def test_logout(client):
     response = client.get('/logout')
     assert response.status_code == 302
+
+def test_purchasePlaces_sad_path(client):
+    response = client.get('/purchasePlaces')
+    assert response.status_code == 405
+
+def test_404_sad_path(client):
+    response = client.get('/bobo')
+    assert response.status_code == 404
